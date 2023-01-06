@@ -127,12 +127,72 @@ pub fn dma_transfer(&mut self, source: u8) {
 }
 
 // MBC (Memory Bank Controller) enum
-enum MBC {
-None,
-MBC1,
-MBC2,
-MBC3,
-MBC5,
+pub enum MBC {
+    None,
+    MBC1 {
+        ram_enable: bool,
+        ram_bank: u8,
+        rom_bank: u8,
+        rom_mode: bool,
+    },
+    MBC2 {
+        ram_enable: bool,
+        rom_bank: u8,
+    },
+    // Add other MBC variants here
+}
+
+impl MBC {
+    fn get_bank(&self, current_bank: u8) -> u8 {
+        match self {
+            MBC::None => current_bank,
+            MBC::MBC1 { ram_enable, ram_bank, rom_bank, rom_mode } => {
+                if *rom_mode {
+                    *rom_bank & 0b0001_1111
+                } else {
+                    (*ram_bank << 5) | (*rom_bank & 0b0001_1111)
+                }
+            },
+            MBC::MBC2 { ram_enable, rom_bank } => *rom_bank & 0b0000_1111,
+            // Add other MBC variants here
+        }
+    }
+
+    fn set_bank(&mut self, addr: u16, val: u8, mem: &mut [u8]) {
+        match self {
+            MBC::None => (),
+            MBC::MBC1 { ram_enable, ram_bank, rom_bank, rom_mode } => {
+                if addr < 0x2000 {
+                    // Enable/disable RAM
+                    *ram_enable = val & 0b0000_1111 == 0b0000_1010;
+                } else if addr < 0x4000 {
+                    // Set low 5 bits of ROM bank number
+                    *rom_bank = (*rom_bank & 0b1110_0000) | (val & 0b0001_1111);
+                } else if addr < 0x6000 {
+                    if *rom_mode {
+                        // Set high bit of ROM bank number
+                        *rom_bank = (*rom_bank & 0b0001_1111) | ((val & 0b0000_0001) << 5);
+                    } else {
+                        // Set RAM bank number
+                        *ram_bank = val & 0b0000_0011;
+                    }
+                } else if addr < 0x8000 {
+                    // Set ROM/RAM mode
+                    *rom_mode = val & 0b0000_0001 == 0;
+                }
+            },
+            MBC::MBC2 { ram_enable, rom_bank } => {
+                if addr < 0x2000 {
+                    // Enable/disable RAM
+                    *ram_enable = val & 0b0000_0001 == 0b0000_0001;
+                } else if addr < 0x4000 {
+                    // Set low 4 bits of ROM bank number
+                    *rom_bank = (*rom_bank & 0b1111_0000) | (val & 0b0000_1111);
+                }
+            },
+            // Add other MBC variants here
+        }
+    }
 }
 impl MBC {
     // Get the current bank number for banked memory
