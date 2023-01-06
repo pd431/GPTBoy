@@ -1,9 +1,11 @@
+use crate::memory::Memory;
+
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*; // Import the functions and types from the parent module
 
     #[test]
-    fn test_non_banked_memory() {
+    pub fn test_non_banked_memory() {
         let mut memory = Memory::new();
         let test_addr = 0x2000; // Any address in the non-banked memory range (0x0000 - 0x3FFF)
         let test_val = 0xAA;
@@ -16,7 +18,7 @@ mod tests {
     }
 
     #[test]
-    fn test_banked_memory() {
+    pub fn test_banked_memory() {
         let mut memory = Memory::new();
         let test_addr = 0x4000; // Any address in the banked memory range (0x4000 - 0x7FFF)
         let test_val = 0xAA;
@@ -34,7 +36,7 @@ mod tests {
     }
 
     #[test]
-    fn test_io_registers() {
+    pub fn test_io_registers() {
         let mut memory = Memory::new();
         let test_addr = 0xFF00; // Any address in the I/O registers range (0xFF00 - 0xFF7F)
         let test_val = 0xAA;
@@ -47,7 +49,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_write_word() {
+    pub fn test_read_write_word() {
         let mut memory = Memory::new();
         let test_addr = 0x2000; // Any address in the non-banked memory range (0x0000 - 0x3FFF)
         let test_val = 0xAABB;

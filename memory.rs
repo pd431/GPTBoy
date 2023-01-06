@@ -1,4 +1,4 @@
-struct Memory {
+pub struct Memory {
     // 64KB of memory
     mem: [u8; 0x10000],
     // Current bank number for banked memory
@@ -14,12 +14,12 @@ struct Memory {
 }
 
 impl Memory {
-    fn new() -> Memory {
+    pub fn new() -> Memory {
         Memory { mem: [0; 0x10000], current_bank: 0, registers: [0; 0x100], mbc: MBC::None, interrupt_enable: 0, dma_transfer: false }
     }
 
     // Read a byte from memory at the given address, taking memory banking, I/O registers, and MBC into account
-    fn read_byte(&self, addr: u16) -> u8 {
+    pub fn read_byte(&self, addr: u16) -> u8 {
         if self.dma_transfer {
             return 0xFF;
         }if addr < 0x4000 {
@@ -42,7 +42,7 @@ impl Memory {
     }
 
     // Write a byte to memory at the given address, taking memory banking, I/O registers, and MBC into account
-    fn write_byte(&mut self, addr: u16, val: u8) {
+    pub fn write_byte(&mut self, addr: u16, val: u8) {
         if self.dma_transfer {
             return;
         }
@@ -65,25 +65,25 @@ impl Memory {
     }
 
 // Set the current bank number for banked memory
-fn set_bank(&mut self, bank: u8) {
+pub fn set_bank(&mut self, bank: u8) {
     self.current_bank = bank;
 }
 
 // Read a word (2 bytes) from memory at the given address, taking memory banking, I/O registers, and MBC into account
-fn read_word(&self, addr: u16) -> u16 {
+pub fn read_word(&self, addr: u16) -> u16 {
     let low = self.read_byte(addr) as u16;
     let high = self.read_byte(addr + 1) as u16;
     (high << 8) | low
 }
 
 // Write a word (2 bytes) to memory at the given address, taking memory banking, I/O registers, and MBC into account
-fn write_word(&mut self, addr: u16, val: u16) {
+pub fn write_word(&mut self, addr: u16, val: u16) {
     self.write_byte(addr, (val & 0xFF) as u8);
     self.write_byte(addr + 1, (val >> 8) as u8);
 }
 
 // Check if an interrupt is enabled and should be triggered
-fn check_interrupt(&self, interrupt: Interrupt) -> bool {
+pub fn check_interrupt(&self, interrupt: Interrupt) -> bool {
     let interrupt_flag = match interrupt {
         Interrupt::VBlank => 0x01,
         Interrupt::LCDStat => 0x02,
@@ -95,7 +95,7 @@ fn check_interrupt(&self, interrupt: Interrupt) -> bool {
 }
 
 // Trigger an interrupt
-fn trigger_interrupt(&mut self, interrupt: Interrupt) {
+pub fn trigger_interrupt(&mut self, interrupt: Interrupt) {
     if !self.check_interrupt(interrupt) {
         return;
     }
@@ -112,7 +112,7 @@ fn trigger_interrupt(&mut self, interrupt: Interrupt) {
 }
 
 // Perform a DMA transfer
-fn dma_transfer(&mut self, source: u8) {
+pub fn dma_transfer(&mut self, source: u8) {
     if self.dma_transfer {
         // DMA transfer already in progress
         return;
@@ -136,7 +136,7 @@ MBC5,
 }
 impl MBC {
     // Get the current bank number for banked memory
-    fn get_bank(&self, bank: u8) -> u8 {
+    pub fn get_bank(&self, bank: u8) -> u8 {
         match self {
             MBC::None => bank,
             MBC::MBC1 => {
@@ -153,7 +153,7 @@ impl MBC {
         }
     }
     // Set the current bank number for banked memory
-    fn set_bank(&mut self, addr: u16, val: u8, mem: &mut [u8]) {
+    pub fn set_bank(&mut self, addr: u16, val: u8, mem: &mut [u8]) {
         match self {
             MBC::None => {}
             MBC::MBC1 => {

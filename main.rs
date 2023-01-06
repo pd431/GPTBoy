@@ -1,3 +1,6 @@
+mod memory_tests;
+mod memory;
+
 #[test]
 fn run_tests() {
     memory_tests::tests::test_non_banked_memory();
